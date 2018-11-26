@@ -1,0 +1,44 @@
+#cloud-config
+
+coreos:
+    units:
+      - name: whoami.service
+        command: start
+        content: |
+          [Unit]
+          Description=Whoami API
+          After=docker.service
+          Requires=docker.service
+
+          [Service]
+          TimeoutStartSec=0
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill whoami
+          ExecStartPre=-/usr/bin/docker rm whoami
+          ExecStartPre=/usr/bin/docker pull containous/whoami
+          ExecStart=/usr/bin/docker run --rm --name whoami \
+                                        --label traefik.frontend.rule=Path:/whoami \
+                                          containous/whoami
+          ExecStop=/usr/bin/docker stop whoami 
+
+
+      - name: traefik.service
+        command: start
+        content: |
+          [Unit]
+          Description=Traefik Container
+          After=docker.service
+          Requires=docker.service
+ 
+          [Service]
+          TimeoutStartSec=0
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill traefik
+          ExecStartPre=-/usr/bin/docker rm traefik
+          ExecStartPre=/usr/bin/docker pull traefik
+          ExecStart=/usr/bin/docker run --rm --name traefik \
+                                        -v /var/run/docker.sock:/var/run/docker.sock \
+                                        -p 80:80 \
+                                        -p 8080:8080 \
+                                          traefik --api --docker
+          ExecStop=/usr/bin/docker stop traefik
