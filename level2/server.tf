@@ -3,13 +3,13 @@ provider "google" {
     project     = "gdg-cloud-lviv"
     region      = "us-central1"
 }
-resource "google_compute_address" "docker-ip" {
+resource "google_compute_address" "static-ip" {
   name = "docker-host-ip"
   network_tier = "STANDARD"
   address_type = "EXTERNAL"
 }
 
-resource "google_compute_instance" "docker-host" {
+resource "google_compute_address" "gae-workshop-server" {
   name         = "docker-host"
   machine_type = "f1-micro"
   zone         = "us-central1-a"

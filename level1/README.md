@@ -105,6 +105,7 @@ resource "google_compute_address" "static-ip" {
 ## 1.3 Now we need a server (replace `<PATH TO CLOUD-CONFIG>` placeholder with real value)
 
 ```hcl
+resource "google_compute_address" "gae-workshop-server" {
   name         = "host"
   machine_type = "f1-micro"
   zone         = "us-central1-a"
