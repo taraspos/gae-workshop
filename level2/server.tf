@@ -3,19 +3,19 @@ provider "google" {
     project     = "gdg-cloud-lviv"
     region      = "us-central1"
 }
-resource "google_compute_address" "static-ip" {
-  name = "docker-host-ip"
+resource "google_compute_address" "workshop-static-ip" {
+  name = "workshop-static-ip"
   network_tier = "STANDARD"
   address_type = "EXTERNAL"
 }
 
-resource "google_compute_address" "gae-workshop-server" {
-  name         = "docker-host"
+resource "google_compute_address" "workshop-server" {
+  name         = "workshop-server"
   machine_type = "f1-micro"
   zone         = "us-central1-a"
   description  = "Server for GDG Cloud Lviv workshop!"
 
-  tags = ["docker"]
+  tags = ["api"]
 
   boot_disk {
     initialize_params {
@@ -30,7 +30,7 @@ resource "google_compute_address" "gae-workshop-server" {
 
     access_config {
         network_tier = "STANDARD"
-        nat_ip = "${google_compute_address.docker-ip.address}"
+        nat_ip = "${google_compute_address.workshop-static-ip.address}"
     }
   }
 

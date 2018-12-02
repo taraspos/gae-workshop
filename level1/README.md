@@ -95,8 +95,8 @@ and `traefik` unit as well  (append it to the `cloud-config.yaml` file):
 Thing is, GAE Standard environment can't access your resources by it's private IP, so we will need a static public one (we could you DNS name instead, but to do that, we would need to buy domain). Append following code to our `server.tf` file
 
 ```hcl
-resource "google_compute_address" "static-ip" {
-  name = "static-ip"
+resource "google_compute_address" "workshop-static-ip" {
+  name = "workshop-static-ip"
   network_tier = "STANDARD"
   address_type = "EXTERNAL"
 }
@@ -105,8 +105,8 @@ resource "google_compute_address" "static-ip" {
 ## 1.3 Now we need a server (replace `<PATH TO CLOUD-CONFIG>` placeholder with real value)
 
 ```hcl
-resource "google_compute_address" "gae-workshop-server" {
-  name         = "host"
+resource "google_compute_address" "workshop-server" {
+  name         = "workshop-server"
   machine_type = "f1-micro"
   zone         = "us-central1-a"
   description  = "Server for GDG Cloud Lviv workshop!"
@@ -126,7 +126,7 @@ resource "google_compute_address" "gae-workshop-server" {
 
     access_config {
         network_tier = "STANDARD"
-        nat_ip = "${google_compute_address.static-ip.address}"
+        nat_ip = "${google_compute_address.workshop-static-ip.address}"
     }
   }
 
