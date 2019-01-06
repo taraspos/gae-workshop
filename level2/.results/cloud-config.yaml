@@ -1,0 +1,65 @@
+#cloud-config
+
+coreos:
+   units:
+      - name: whoami.service
+        command: start
+        content: |
+          [Unit]
+          Description=Whoami API
+          After=docker.service
+          Requires=docker.service
+
+          [Service]
+          TimeoutStartSec=0
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill whoami
+          ExecStartPre=-/usr/bin/docker rm whoami
+          ExecStartPre=/usr/bin/docker pull containous/whoami
+          ExecStart=/usr/bin/docker run --rm --name whoami \
+                                        --label traefik.frontend.rule=Path:/whoami \
+                                          containous/whoami
+          ExecStop=/usr/bin/docker stop whoami
+
+
+      - name: traefik.service
+        command: start
+        content: |
+          [Unit]
+          Description=Traefik Container
+          After=docker.service
+          Requires=docker.service
+
+          [Service]
+          TimeoutStartSec=0
+          Restart=always
+          ExecStartPre=-/usr/bin/docker kill traefik
+          ExecStartPre=-/usr/bin/docker rm traefik
+          ExecStartPre=/usr/bin/docker pull traefik
+          ExecStart=/usr/bin/docker run --rm --name traefik \
+                              -v /var/run/docker.sock:/var/run/docker.sock \
+                              -v /etc/cfssl:/etc/cfssl:ro \
+                              -p 80:80 \
+                              -p 443:443 \
+                              -p 8080:8080 \
+                                 traefik \
+                                 --api --docker \
+                                 --entryPoints='Name:http Redirect.EntryPoint:https' \
+                                 --entryPoints='Name:https Address::443 TLS:/etc/cfssl/server.pem,/etc/cfssl/server-key.pem CA:/etc/cfssl/ca.pem'
+          ExecStop=/usr/bin/docker stop traefik
+      - name: cfssl-download.service
+        command: start
+        content: |
+          [Unit]
+          Description=Download the server certificates from storage bucket
+          Before=traefik.service
+
+          [Service]
+          Type=oneshot
+          ExecStartPre=/usr/bin/docker pull google/cloud-sdk:alpine
+          ExecStart=/bin/bash -c \
+                '/usr/bin/docker run --rm --name cfssl-lodwnload \
+                          -v /etc/cfssl:/etc/cfssl \
+                            google/cloud-sdk:alpine gsutil cp gs://<BUCKET_NAME>/{ca,server}* /etc/cfssl'
+          RemainAfterExit=true
+          StandardOutput=journal
