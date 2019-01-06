@@ -46,6 +46,8 @@ func demoHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("HOST_ENDPOINT env variable not provided")
 	}
 
+	hostEndpoint += "/whoami"
+
 	rs, err := http.Get(hostEndpoint)
 	if err != nil {
 		log.Fatal(err)

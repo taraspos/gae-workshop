@@ -1,15 +1,16 @@
 provider "google" {
     credentials = "${file("account.json")}"
-    project     = "gdg-cloud-lviv"
+    project     = "workshop-test"
     region      = "us-central1"
 }
+
 resource "google_compute_address" "workshop-static-ip" {
   name = "workshop-static-ip"
   network_tier = "STANDARD"
   address_type = "EXTERNAL"
 }
 
-resource "google_compute_address" "workshop-server" {
+resource "google_compute_instance" "workshop-server" {
   name         = "workshop-server"
   machine_type = "f1-micro"
   zone         = "us-central1-a"
@@ -35,13 +36,12 @@ resource "google_compute_address" "workshop-server" {
   }
 
   metadata {
-    sshKeys   = "gdglviv:${file("~/.ssh/id_rsa.pub")}"
-    user-data = "${file("cloud-config.yml")}"
+    user-data = "${file("cloud-config.yaml")}"
   }
 }
 
 resource "google_compute_firewall" "api" {
-  name    = "traefik"
+  name    = "api"
   network = "default"
 
   allow {
@@ -49,8 +49,9 @@ resource "google_compute_firewall" "api" {
     ports    = ["80"]
   }
 
-  source_tags = ["api"]
+  source_ranges = ["0.0.0.0/0"]
 }
+
 
 resource "google_compute_firewall" "traefik" {
   name    = "traefik"
@@ -61,5 +62,5 @@ resource "google_compute_firewall" "traefik" {
     ports    = ["8080"]
   }
 
-  source_ranges = ["<MY PUBLIC IP>/32"]
+  source_ranges = ["<MY_PUBLIC_IP>/32"]
 }

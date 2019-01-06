@@ -7,12 +7,17 @@ First we will need to install it as described in the [official documentation](ht
 Then, we would need to generate credentials for terraform to use:
 
 - Go to the [Google Cloud service accounts](https://console.cloud.google.com/apis/credentials/serviceaccountkey)
-    * Choose **New service account**
-    * Name it `terraform-admin`
-    * Select Role **Project -> Owner**
-    * Select **JSON**
-    * Click **Create**
-    * Save the JSON file on your computer
+
+    - Choose **New service account**
+    - Name it `terraform-admin`
+    - **Next**
+    - Select Role **Project -> Owner**
+    - **Next**
+    - Create Key -> **JSON**
+    - Save the JSON file on your computer
+    - Click **Done**
+
+    **Terraform is not installed in the Cloud Shell environment, so it is up to you where to perform this steps, Cloud Shell is still preffered, but you will need to use console based text editors like `vim`, `emacs` or `nano`, if you can't use them, better stick to your laptop.
 
 - Create `server.tf` file and put folliwing lines in there replacing placeholders within `<PATH TO YOUR JSON FILE>` and `<YOUR PROJECT ID>` with actual values
     ```hcl
@@ -105,7 +110,7 @@ resource "google_compute_address" "workshop-static-ip" {
 ## 1.3 Now we need a server (replace `<PATH TO CLOUD-CONFIG>` placeholder with real value)
 
 ```hcl
-resource "google_compute_address" "workshop-server" {
+resource "google_compute_instance" "workshop-server" {
   name         = "workshop-server"
   machine_type = "f1-micro"
   zone         = "us-central1-a"
@@ -140,7 +145,7 @@ resource "google_compute_address" "workshop-server" {
 
 ```hcl
 resource "google_compute_firewall" "api" {
-  name    = "traefik"
+  name    = "api"
   network = "default"
 
   allow {
@@ -148,7 +153,7 @@ resource "google_compute_firewall" "api" {
     ports    = ["80"]
   }
 
-  source_tags = ["api"]
+  source_ranges = ["0.0.0.0/0"]
 }
 ```
 
@@ -172,11 +177,20 @@ resource "google_compute_firewall" "traefik" {
 
 ### 1.6 Apply our infrastructure as code definitions
 
-Run `terraform apply`, find the generated Static Public IP address and try opening it in the browser.
+Run `terraform init` and `terraform apply`, find the generated Static Public IP address and try opening it in the browser.
 
-Try opening `<STATIC PUBLIC IP>:8080` in the browser as well.
+Try opening `<STATIC PUBLIC IP>:8080` and `<STATIC PUBLIC IP>:80` in the browser as well.
 
 ### 1.7 Modify our app code, to do the request to our deployed server
+
+Create `.gcloudignore` (if not present) file and put there files not needed for our app to function:
+
+```
+*terraform*
+*.tf
+cloud-config.yaml
+*.json
+```
 
 Append to the `app.yaml` file next configurations (do not forget to replace placeholder `<STATIC_PUBLIC_IP>` with actual value):
 
@@ -186,7 +200,7 @@ env_variables:
 ```
 
 Now we need to create new HTTP handler for our app, to do so, we will need to add
-`"os"` and `"io/ioutil"` to the list of imports and write next handler code:
+`"io/ioutil"` to the list of imports and write next handler code:
 
 ```go
 // demoHandler sends request to our HOST_ENDPOINT, and responses with received response
@@ -195,6 +209,8 @@ func demoHandler(w http.ResponseWriter, r *http.Request) {
   if hostEndpoint == "" {
     log.Fatal("HOST_ENDPOINT env variable not provided")
   }
+
+  hostEndpoint += "/whoami"
 
   rs, err := http.Get(hostEndpoint)
   if err != nil {
@@ -218,3 +234,5 @@ And add routing rule for our new handler at the begining of `func main()`:
 ```go
   http.HandleFunc("/demo", demoHandler)
 ```
+
+Deploy the updated app with `gcloud app deploy` and open the `<APP_URL>/demo`, to find out `APP_URL` you can call `gcloud app browse`
