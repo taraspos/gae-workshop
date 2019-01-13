@@ -9,20 +9,20 @@ Then, we would need to generate credentials for terraform to use:
 - As we started previously with `gloud` go to the [Google Cloud Shell](https://console.cloud.google.com/appengine?cloudshell=true&_ga=2.219504537.-1092609672.1545216569)
 
     - Change directory to the go-app/ created in the previous [Level 0](https://cloud.google.com/appengine/docs/standard/go111/building-app/) and export your project id as a variable  
-    `cd go-app/`   
-    `export PROJECT_ID=<YOUR PROJECT ID>`
-    - Create service user for terraform:
-     `gcloud iam service-accounts create terraform --display-name "Terraform admin account"`
+    `cd go-app/`    
+    `export PROJECT_ID=<YOUR PROJECT ID>`   
+    - Create service user for terraform:   
+     `gcloud iam service-accounts create terraform --display-name "Terraform admin account"`   
     - **Next**
-    - Create Key -> **JSON**
+    - Create Key -> **JSON**    
       `gcloud iam service-accounts keys create terraform.json --iam-account terraform@${PROJECT_ID}.iam.gserviceaccount.com`
     - **Next**
-    - Grant the service account owner permissions to the Project:
+    - Grant owner permissions to a service account for the Project:    
       `gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:terraform@${PROJECT_ID}.iam.gserviceaccount.com --role roles/owner`
 
     **Terraform is not installed in the Cloud Shell environment, so it is up to you where to perform this steps, Cloud Shell is still preffered, but you will need to use console based text editors like `vim`, `emacs`, `nano` or [Cloud Shell editor](https://cloud.google.com/shell/docs/features#code_editor) which is very similar to Visual Studio Code. If you can't use them, better stick to your laptop.
     
-    - Download and unzip terraform in Cloud Shell:
+    - Download and unzip terraform in Cloud Shell:          
     `wget https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip && unzip terraform_0.11.11_linux_amd64.zip`
 
 - Create `server.tf` file and put folliwing lines in there replacing placeholders within `<PATH TO YOUR JSON FILE>` and `<YOUR PROJECT ID>` with actual values
