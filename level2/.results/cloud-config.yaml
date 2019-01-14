@@ -18,6 +18,8 @@ coreos:
           ExecStartPre=/usr/bin/docker pull containous/whoami
           ExecStart=/usr/bin/docker run --rm --name whoami \
                                         --label traefik.frontend.rule=Path:/whoami \
+                                        --label traefik.frontend.entryPoints=http,https \
+                                        --label traefik.frontend.redirect.entryPoint=https \
                                           containous/whoami
           ExecStop=/usr/bin/docker stop whoami
 

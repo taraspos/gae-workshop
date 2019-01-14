@@ -6,7 +6,7 @@ Run `go get -u github.com/cloudflare/cfssl/cmd/cfssl` and `go get -u github.com/
 
 ## Generate self signed SSL certs
 
-Set the env variable with the ip of your server (same on ase in `app.yml`):
+Set the env variable with the ip of your server (same as in `app.yml`):
 `export SERVER_IP=<Server static IP>`
 
 Copy the content of [create-certs.sh](./create-certs.sh) to your
@@ -55,13 +55,14 @@ Add new systemd unit to the `cloud-config.yaml` file which will download the cer
 
 ## Make traefik read the certificates
 
-Now need to update traefik configurations to read  the certificats:
+Now you need to update traefik configurations to read  the certificats:
 
 ```sh
 ExecStart=/usr/bin/docker run --rm --name traefik \
                               -v /var/run/docker.sock:/var/run/docker.sock \
                               -v /etc/cfssl:/etc/cfssl:ro \
-                              -p 80:80 -p 443:443 \
+                              -p 80:80 \
+                              -p 443:443 \
                               -p 8080:8080 \
                                  traefik \
                                     --api --docker \
