@@ -55,7 +55,7 @@ Add new systemd unit to the `cloud-config.yaml` file which will download the cer
 
 ## Make traefik read the certificates
 
-Now you need to update traefik configurations to read  the certificats:
+Now you need to update traefik configurations to read  the certificates:
 
 ```sh
 ExecStart=/usr/bin/docker run --rm --name traefik \
