@@ -66,7 +66,7 @@ ExecStart=/usr/bin/docker run --rm --name traefik \
                               -p 8080:8080 \
                                  traefik \
                                     --api --docker \
-                                    --entryPoints='Name:http  Address::80' \
+                                    --entryPoints='Name:http  Address::80  Redirect.EntryPoint:https' \
                                     --entryPoints='Name:https Address::443 TLS:/etc/cfssl/server.pem,/etc/cfssl/server-key.pem CA:/etc/cfssl/ca.pem'
 ```
 
