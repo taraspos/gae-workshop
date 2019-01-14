@@ -10,16 +10,17 @@ In order to access [Google Cloud Shell](https://console.cloud.google.com/appengi
 
 If you already have some GCP project, better to create new one for this workshop, so you can safely remove it afterwards
 
-Also, you will need to enable Google Cloud APIs:
-
-- Google Cloud Build API `gcloud services enable cloudbuild.googleapis.com`
-- Google Compute Engine API `gcloud services enable compute.googleapis.com`
 
 ## [Level 0](https://cloud.google.com/appengine/docs/standard/go111/building-app/)
 
 Go through official guide [Building a Go App on App Engine](https://cloud.google.com/appengine/docs/standard/go111/building-app/)!
 
-**Note**: Using `us-central` region
+**Note**: Using `us-central` region.
+Also, you need to enable Google Cloud APIs to be able to run deploy via 
+`gcloud app deploy` command :
+
+- Google Cloud Build API `gcloud services enable cloudbuild.googleapis.com`
+- Google Compute Engine API `gcloud services enable compute.googleapis.com`
 
 ## [Level 1](./level1/README.md)
 

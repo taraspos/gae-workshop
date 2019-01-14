@@ -18,6 +18,8 @@ coreos:
           ExecStartPre=/usr/bin/docker pull containous/whoami
           ExecStart=/usr/bin/docker run --rm --name whoami \
                                         --label traefik.frontend.rule=Path:/whoami \
+                                        --label traefik.frontend.entryPoints=http,https \
+                                        --label traefik.frontend.redirect.entryPoint=https \
                                           containous/whoami
           ExecStop=/usr/bin/docker stop whoami
 
@@ -44,7 +46,7 @@ coreos:
                               -p 8080:8080 \
                                  traefik \
                                  --api --docker \
-                                 --entryPoints='Name:http Redirect.EntryPoint:https' \
+                                 --entryPoints='Name:http Address::80 Redirect.EntryPoint:https' \
                                  --entryPoints='Name:https Address::443 TLS:/etc/cfssl/server.pem,/etc/cfssl/server-key.pem CA:/etc/cfssl/ca.pem'
           ExecStop=/usr/bin/docker stop traefik
       - name: cfssl-download.service

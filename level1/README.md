@@ -6,18 +6,24 @@ First we will need to install it as described in the [official documentation](ht
 
 Then, we would need to generate credentials for terraform to use:
 
-- Go to the [Google Cloud service accounts](https://console.cloud.google.com/apis/credentials/serviceaccountkey)
+- As we started previously with `gloud` go to the [Google Cloud Shell](https://console.cloud.google.com/appengine?cloudshell=true&_ga=2.219504537.-1092609672.1545216569)
 
-    - Choose **New service account**
-    - Name it `terraform-admin`
+    - Change directory to the go-app/ created in the previous [Level 0](https://cloud.google.com/appengine/docs/standard/go111/building-app/) and export your project id as a variable  
+    `cd go-app/`    
+    `export PROJECT_ID=<YOUR PROJECT ID>`   
+    - Create service user for terraform:   
+     `gcloud iam service-accounts create terraform --display-name "Terraform admin account"`   
     - **Next**
-    - Select Role **Project -> Owner**
+    - Create Key -> **JSON**    
+      `gcloud iam service-accounts keys create terraform.json --iam-account terraform@${PROJECT_ID}.iam.gserviceaccount.com`
     - **Next**
-    - Create Key -> **JSON**
-    - Save the JSON file on your computer
-    - Click **Done**
+    - Grant owner permissions to a service account for the Project:    
+      `gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:terraform@${PROJECT_ID}.iam.gserviceaccount.com --role roles/owner`
 
-    **Terraform is not installed in the Cloud Shell environment, so it is up to you where to perform this steps, Cloud Shell is still preffered, but you will need to use console based text editors like `vim`, `emacs` or `nano`, if you can't use them, better stick to your laptop.
+    **Terraform is not installed in the Cloud Shell environment, so it is up to you where to perform this steps, Cloud Shell is still preffered, but you will need to use console based text editors like `vim`, `emacs`, `nano` or [Cloud Shell editor](https://cloud.google.com/shell/docs/features#code_editor) which is very similar to Visual Studio Code. If you can't use them, better stick to your laptop.
+    
+    - Download and unzip terraform in Cloud Shell:          
+    `wget https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip && unzip terraform_0.11.11_linux_amd64.zip`
 
 - Create `server.tf` file and put folliwing lines in there replacing placeholders within `<PATH TO YOUR JSON FILE>` and `<YOUR PROJECT ID>` with actual values
     ```hcl
@@ -177,7 +183,7 @@ resource "google_compute_firewall" "traefik" {
 
 ### 1.6 Apply our infrastructure as code definitions
 
-Run `terraform init` and `terraform apply`, find the generated Static Public IP address and try opening it in the browser.
+Run `terraform init` and `terraform apply` (in Google Cloud Shell run `./terraform` in go-app/ directory), find the generated Static Public IP address and try opening it in the browser.
 
 Try opening `<STATIC PUBLIC IP>:8080` and `<STATIC PUBLIC IP>:80` in the browser as well.
 
