@@ -2,9 +2,12 @@
 
 ## 1.0 - Configure Terraform
 
-First we will need to install it as described in the [official documentation](https://www.terraform.io/intro/getting-started/install.html)
+> **Why terraform ❓**
 
-Then, we would need to generate credentials for terraform to use:
+> Because in the real world, no-one provisions the infrastructure by clicking in the WebConsole.
+> Defining infrastructure as code is always a good practice and we love good practices. Also, it can be used as documentation later as well as reused.
+
+To start, we will neeed to generate credentials to be used with Terraform:
 
 - As we started previously with `gloud` go to the [Google Cloud Shell](https://console.cloud.google.com/appengine?cloudshell=true&_ga=2.219504537.-1092609672.1545216569)
 
@@ -20,7 +23,7 @@ Then, we would need to generate credentials for terraform to use:
     - Grant owner permissions to a service account for the Project:    
       `gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:terraform@${PROJECT_ID}.iam.gserviceaccount.com --role roles/owner`
 
-    **Terraform is not installed in the Cloud Shell environment, so it is up to you where to perform this steps, Cloud Shell is still preffered, but you will need to use console based text editors like `vim`, `emacs`, `nano` or [Cloud Shell editor](https://cloud.google.com/shell/docs/features#code_editor) which is very similar to Visual Studio Code. If you can't use them, better stick to your laptop.
+    **Terraform is not installed in the Cloud Shell environment ([official installation guide](https://www.terraform.io/intro/getting-started/install.html)), so it is up to you where to perform this steps, Cloud Shell is still preffered, but you will need to use console based text editors like `vim`, `emacs`, `nano` or [Cloud Shell editor](https://cloud.google.com/shell/docs/features#code_editor) which is very similar to Visual Studio Code. If you can't use them, better stick to your laptop.**
     
     - Download and unzip terraform in Cloud Shell:          
     `wget https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip && unzip terraform_0.11.11_linux_amd64.zip`
@@ -38,9 +41,19 @@ Then, we would need to generate credentials for terraform to use:
 
 We will use [CoreOS](https://coreos.com/why/) based server, and we are going to provision it with [cloud-config](https://coreos.com/os/docs/latest/cloud-config.html).
 
-_TODO: or better to go stright to [Ignition](https://coreos.com/ignition/docs/latest/), since cloud-config is deprecated now... but Ignition will be harder to understand... Maybe not to use CoreOS at all?_
+> **Why CoreOS ❓**
 
-For demonstration purposes we will use [Traefik](https://traefik.io/) and [whoami demo app](https://github.com/containous/whoami).
+> Mostly for demonstration purpose. Evverybody used CentOS or Ubuntu.
+> And it is completely, from bottom to top, about containers. And we will use containers in this workshop! 
+
+> **Why Cloud-Config ❓**
+
+> Because it is the simplest way to provision the cloud native Linux server, especially CoreOS.
+> This is still real world, ofcourse we are not going to SSH into the server and do the configurations manually 🤢
+
+_Note: Cloud-Config is deprecated in favor of [Ignition](https://coreos.com/ignition/docs/latest/), however in this workshop we will stick to Cloud-Config, since it is easier to understand._
+
+For demonstration purposes (and its amzing container native features!) we will use [Traefik](https://traefik.io/) and [whoami demo app](https://github.com/containous/whoami).
 
 CoreOS is SystemD based distribution, so we will run this tools as Docker Container managed by SystemD units.
 
