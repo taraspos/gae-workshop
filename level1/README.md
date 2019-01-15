@@ -43,7 +43,7 @@ We will use [CoreOS](https://coreos.com/why/) based server, and we are going to 
 
 > **Why CoreOS ❓**
 
-> Mostly for demonstration purpose. Evverybody used CentOS or Ubuntu.
+> Mostly for demonstration purpose. Everybody used CentOS or Ubuntu.
 > And it is completely, from bottom to top, about containers. And we will use containers in this workshop! 
 
 > **Why Cloud-Config ❓**
@@ -114,9 +114,11 @@ and `traefik` unit as well  (append it to the `cloud-config.yaml` file):
           ExecStop=/usr/bin/docker stop traefik
 ```
 
+**Be carefull with indents! This is YAML, [indents are important](https://www.reddit.com/r/ProgrammerHumor/comments/9fhvyl/writing_yaml/)**
+
 ## 1.2 Now we need a ~~server~~ public IP address
 
-Thing is, GAE Standard environment can't access your resources by it's private IP, so we will need a static public one (we could you DNS name instead, but to do that, we would need to buy domain). Append following code to our `server.tf` file
+Thing is, GAE Standard environment (free one) can't access your resources by it's private IP, so we will need a static public one (we could use DNS name instead, but to do that, we would need to buy domain). Append following code to our `server.tf` file
 
 ```hcl
 resource "google_compute_address" "workshop-static-ip" {
@@ -126,7 +128,9 @@ resource "google_compute_address" "workshop-static-ip" {
 }
 ```
 
-## 1.3 Now we need a server (replace `<PATH TO CLOUD-CONFIG>` placeholder with real value)
+## 1.3 Now we need a server 
+
+Replace `<PATH TO CLOUD-CONFIG>` placeholder with real value
 
 ```hcl
 resource "google_compute_instance" "workshop-server" {
@@ -178,7 +182,7 @@ resource "google_compute_firewall" "api" {
 
 ### 1.5 Open port 8080 for our IP only
 
-Go to https://ifconfig.me/ or do `curl ifconfig.me` to find your public ip and put it instead of `<MY PUBLIC IP` placeholder
+Go to https://ifconfig.me/ or do `curl ifconfig.me` to find your public ip and put it instead of `<MY PUBLIC IP>` placeholder
 
 ```hcl
 resource "google_compute_firewall" "traefik" {
@@ -196,9 +200,11 @@ resource "google_compute_firewall" "traefik" {
 
 ### 1.6 Apply our infrastructure as code definitions
 
-Run `terraform init` and `terraform apply` (in Google Cloud Shell run `./terraform` in go-app/ directory), find the generated Static Public IP address and try opening it in the browser.
+Run `terraform init` and `terraform apply` (in Google Cloud Shell run `./terraform` in go-app/ directory), find the generated Static Public IP address (in the output of previous command) and save it for later, we will need it.
 
-Try opening `<STATIC PUBLIC IP>:8080` and `<STATIC PUBLIC IP>:80` in the browser as well.
+Try opening next URLs:
+- `<STATIC PUBLIC IP>:8080` - you should see the Traefik dashboard here
+- `<STATIC PUBLIC IP>:80`   - you should see details of your requests, provided by whoami demo app.
 
 ### 1.7 Modify our app code, to do the request to our deployed server
 
@@ -254,4 +260,4 @@ And add routing rule for our new handler at the begining of `func main()`:
   http.HandleFunc("/demo", demoHandler)
 ```
 
-Deploy the updated app with `gcloud app deploy` and open the `<APP_URL>/demo`, to find out `APP_URL` you can call `gcloud app browse`
+Deploy the updated app with `gcloud app deploy` and open the `<APP_URL>/demo` (_To find out `APP_URL` you can call `gcloud app browse`_)
