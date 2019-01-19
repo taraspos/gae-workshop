@@ -1,6 +1,14 @@
 # gae-workshop
 
-GDG Cloud Lviv workshop for Google App Engine
+This workshop guides you thourgh process of creation simple and completely free backend on Google Cloud Platform, utilizing only [always free](https://cloud.google.com/free/) resources and configuration of [TLS Mutual Authentication](https://medium.com/sitewards/the-magic-of-tls-x509-and-mutual-authentication-explained-b2162dec4401) betweeen Google App Engine application and Google Compute Engine server.
+
+<details><summary>Diagram HERE</summary>
+<p>
+
+![diagram](./gae-workshop-diagram.png)
+
+</p>
+</details>
 
 ## Prerequisites
 
@@ -28,4 +36,4 @@ Deploy and provision simple webserver with terraform, then access it from GAE ap
 
 ## [Level 2](./level2/README.md)
 
-Protect webserver with TLS auth, then access it securely from GAE app.
+Protect connection between app and server with [TLS Mutual Authentication](https://medium.com/sitewards/the-magic-of-tls-x509-and-mutual-authentication-explained-b2162dec4401).
