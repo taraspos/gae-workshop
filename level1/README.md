@@ -2,28 +2,26 @@
 
 ## 1.0 - Configure Terraform
 
-> **Why terraform ❓**
+> **Why [Terraform](https://www.terraform.io) ❓**
 
 > Because in the real world, no-one provisions the infrastructure by clicking in the WebConsole.
 > Defining infrastructure as code is always a good practice and we love good practices. Also, it can be used as documentation later as well as reused.
 
 To start, we will neeed to generate credentials to be used with Terraform:
 
-- As we started previously with `gloud` go to the [Google Cloud Shell](https://console.cloud.google.com/appengine?cloudshell=true&_ga=2.219504537.-1092609672.1545216569)
+- Open [Google Cloud Shell](https://console.cloud.google.com/appengine?cloudshell=true&_ga=2.219504537.-1092609672.1545216569)
 
-    - Change directory to the go-app/ created in the previous [Level 0](https://cloud.google.com/appengine/docs/standard/go111/building-app/) and export your project id as a variable  
+    - Change directory to the go-app/ created in the [Level 0](https://cloud.google.com/appengine/docs/standard/go111/building-app/) and export your project id as a variable  
     `cd go-app/`    
     `export PROJECT_ID=<YOUR PROJECT ID>`   
     - Create service user for terraform:   
      `gcloud iam service-accounts create terraform --display-name "Terraform admin account"`   
-    - **Next**
-    - Create Key -> **JSON**    
+    - Create `terraform.json` key    
       `gcloud iam service-accounts keys create terraform.json --iam-account terraform@${PROJECT_ID}.iam.gserviceaccount.com`
-    - **Next**
     - Grant owner permissions to a service account for the Project:    
       `gcloud projects add-iam-policy-binding ${PROJECT_ID} --member serviceAccount:terraform@${PROJECT_ID}.iam.gserviceaccount.com --role roles/owner`
 
-    **Terraform is not installed in the Cloud Shell environment ([official installation guide](https://www.terraform.io/intro/getting-started/install.html)), so it is up to you where to perform this steps, Cloud Shell is still preffered, but you will need to use console based text editors like `vim`, `emacs`, `nano` or [Cloud Shell editor](https://cloud.google.com/shell/docs/features#code_editor) which is very similar to Visual Studio Code. If you can't use them, better stick to your laptop.**
+    **Terraform is not installed in the Cloud Shell environment ([official installation guide](https://www.terraform.io/intro/getting-started/install.html)), consider using [Cloud Shell editor](https://cloud.google.com/shell/docs/features#code_editor) to edit `.tf`, `.go` and `.yaml` files (which is very similar to Visual Studio Code), or you can use console based text editors like `vim`, `emacs` or `nano`.**
     
     - Download and unzip terraform in Cloud Shell:          
     `wget https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip && unzip terraform_0.11.11_linux_amd64.zip`
@@ -41,21 +39,26 @@ To start, we will neeed to generate credentials to be used with Terraform:
 
 We will use [CoreOS](https://coreos.com/why/) based server, and we are going to provision it with [cloud-config](https://coreos.com/os/docs/latest/cloud-config.html).
 
-> **Why CoreOS ❓**
+> **Why [CoreOS](https://coreos.com/why/) ❓**
 
 > Mostly for demonstration purpose. Everybody used CentOS or Ubuntu.
 > And it is completely, from bottom to top, about containers. And we will use containers in this workshop! 
 
-> **Why Cloud-Config ❓**
+> **Why [Cloud-Config](https://coreos.com/os/docs/latest/cloud-config.html) ❓**
 
 > Because it is the simplest way to provision the cloud native Linux server, especially CoreOS.
 > This is still real world, ofcourse we are not going to SSH into the server and do the configurations manually 🤢
 
 _Note: Cloud-Config is deprecated in favor of [Ignition](https://coreos.com/ignition/docs/latest/), however in this workshop we will stick to Cloud-Config, since it is easier to understand._
 
-For demonstration purposes (and its amzing container native features!) we will use [Traefik](https://traefik.io/) and [whoami demo app](https://github.com/containous/whoami).
+For demonstration purposes we will use [Traefik](https://traefik.io/) and [whoami demo app](https://github.com/containous/whoami).
 
-CoreOS is SystemD based distribution, so we will run this tools as Docker Container managed by SystemD units.
+> **Why [Traefik](https://traefik.io/) ❓**
+
+> Traefik is container and cloud native reverse proxy and loadbalancer
+> with nice dashboard and awesome features (like reading configurations from docker labels and other features we will useer in Level 2)
+
+CoreOS is SystemD based distribution, so we will run this tools as Docker containers managed by SystemD units.
 
 First, create `cloud-config.yaml` file, add next lines:
 
@@ -89,6 +92,9 @@ Then, add `whoami` unit configurations (append it to the `cloud-config.yaml` fil
           ExecStop=/usr/bin/docker stop whoami
 ```
 
+_where `--label traefik.frontend.rule=Path:/whoami` is traefik configuration, which tells that traffic
+coming to HTTP path `/whoami` will be forwarded to the `whoami` container._
+
 and `traefik` unit as well  (append it to the `cloud-config.yaml` file):
 
 ```yaml
@@ -118,7 +124,9 @@ and `traefik` unit as well  (append it to the `cloud-config.yaml` file):
 
 ## 1.2 Now we need a ~~server~~ public IP address
 
-Thing is, GAE Standard environment (free one) can't access your resources by it's private IP, so we will need a static public one (we could use DNS name instead, but to do that, we would need to buy domain). Append following code to our `server.tf` file
+Thing is, GAE Standard environment (free one) can't access your resources by it's private IP, so we will need a static public one (we could use DNS name instead, but to do that, we would need to buy domain). 
+
+Append following code to our `server.tf` file
 
 ```hcl
 resource "google_compute_address" "workshop-static-ip" {
@@ -130,7 +138,7 @@ resource "google_compute_address" "workshop-static-ip" {
 
 ## 1.3 Now we need a server 
 
-Replace `<PATH TO CLOUD-CONFIG>` placeholder with real value
+In the following code replace `<PATH TO CLOUD-CONFIG>` placeholder with real value and append to the `server.tf` file
 
 ```hcl
 resource "google_compute_instance" "workshop-server" {
@@ -166,6 +174,9 @@ resource "google_compute_instance" "workshop-server" {
 
 ### 1.4 Wide open 80 port on Firewall
 
+GCP doesn't provide a way to allow traffic only from GAE environment and since it has dynamic IPs
+we neeed to wide open port 80, to be able access our services from local machine and GAE Enironment.
+
 ```hcl
 resource "google_compute_firewall" "api" {
   name    = "api"
@@ -181,6 +192,9 @@ resource "google_compute_firewall" "api" {
 ```
 
 ### 1.5 Open port 8080 for our IP only
+
+Traefik serves its dashboard on port 8080, we don't need to access it from our GAE but having access from local machine would be useful.
+So lets open firewall access from our current public IP only.
 
 Go to https://ifconfig.me/ or do `curl ifconfig.me` to find your public ip and put it instead of `<MY PUBLIC IP>` placeholder
 
@@ -200,15 +214,16 @@ resource "google_compute_firewall" "traefik" {
 
 ### 1.6 Apply our infrastructure as code definitions
 
-Run `terraform init` and `terraform apply` (in Google Cloud Shell run `./terraform` in go-app/ directory), find the generated Static Public IP address (in the output of previous command) and save it for later, we will need it.
+Run `terraform init` and `terraform apply` (or `./terraform` in go-app/ directory, if the binary not in your `PATH`), find the generated Static Public IP address (somewhere in the output of previous command) and save it for later, we will need it.
 
 Try opening next URLs:
-- `<STATIC PUBLIC IP>:8080` - you should see the Traefik dashboard here
-- `<STATIC PUBLIC IP>:80`   - you should see details of your requests, provided by whoami demo app.
+- `<STATIC PUBLIC IP>:8080`        - you should see the Traefik dashboard here
+- `<STATIC PUBLIC IP>:80/whoami`   - you should see details of your requests, provided by whoami demo app.
 
 ### 1.7 Modify our app code, to do the request to our deployed server
 
-Create `.gcloudignore` (if not present) file and put there files not needed for our app to function:
+We don't want deploy our credentials and not releant files with our app code.
+To avoid packaging them, we need to create `.gcloudignore` (if not present) file and put there following glob patterns:
 
 ```
 *terraform*
@@ -224,8 +239,10 @@ env_variables:
   HOST_ENDPOINT: http://<STATIC_PUBLIC_IP>:80
 ```
 
-Now we need to create new HTTP handler for our app, to do so, we will need to add
-`"io/ioutil"` to the list of imports and write next handler code:
+Now we want our app to communicate with our server (do the request to the `/whoami` endpoint from GAE environment)
+
+To do that we need to create new HTTP handler with all the acutal logic to the `main.go` file.
+We need to start by adding `"io/ioutil"` to the list of imports and following handler function:
 
 ```go
 // demoHandler sends request to our HOST_ENDPOINT, and responses with received response
@@ -254,10 +271,17 @@ func demoHandler(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-And add routing rule for our new handler at the begining of `func main()`:
+Now we want this logic to be excuted when we go to the `/demo` path of our app.
+This will require following routing rule on beginning of `func main()`:
 
 ```go
   http.HandleFunc("/demo", demoHandler)
 ```
 
-Deploy the updated app with `gcloud app deploy` and open the `<APP_URL>/demo` (_To find out `APP_URL` you can call `gcloud app browse`_)
+Deploy the updated app code with `gcloud app deploy` and open the `<APP_URL>/demo` (_To find out `APP_URL` you can call `gcloud app browse`_).
+
+You should see the similar results as you did on URL `<STATIC PUBLIC IP>:80/whoami`.
+
+Done? Now it's going to get interesting! 
+
+## [Click here to open LEVEL 2](../level2/README.md)
