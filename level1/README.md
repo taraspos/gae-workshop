@@ -124,7 +124,7 @@ and `traefik` unit as well  (append it to the `cloud-config.yaml` file):
 
 ## 1.2 Now we need a ~~server~~ public IP address
 
-Thing is, GAE Standard environment (free one) can't access your resources by it's private IP, so we will need a static public one (we could use DNS name instead, but to do that, we would need to buy domain). 
+Thing is, GAE Standard environment (free one) can't access your resources by it's private IP, so we will need a static public one (we could use DNS name instead, but to do that, we would need to buy domain). Also we will add **output** definition to get generated static IP in our console after it will be created by terraform.
 
 Append following code to our `server.tf` file
 
@@ -133,6 +133,10 @@ resource "google_compute_address" "workshop-static-ip" {
   name = "workshop-static-ip"
   network_tier = "STANDARD"
   address_type = "EXTERNAL"
+}
+
+output "static-ip" {
+  value = "${google_compute_address.workshop-static-ip.address}"
 }
 ```
 
@@ -245,6 +249,18 @@ To do that we need to create new HTTP handler with all the acutal logic to the `
 We need to start by adding `"io/ioutil"` to the list of imports and following handler function:
 
 ```go
+package main
+
+import (
+...
+	"io/ioutil"
+...
+)
+```
+
+Add a `demoHandler` function:
+
+```go
 // demoHandler sends request to our HOST_ENDPOINT, and responses with received response
 func demoHandler(w http.ResponseWriter, r *http.Request) {
   hostEndpoint := os.Getenv("HOST_ENDPOINT")
@@ -275,7 +291,9 @@ Now we want this logic to be excuted when we go to the `/demo` path of our app.
 This will require following routing rule on beginning of `func main()`:
 
 ```go
+func main() {
   http.HandleFunc("/demo", demoHandler)
+  ...
 ```
 
 Deploy the updated app code with `gcloud app deploy` and open the `<APP_URL>/demo` (_To find out `APP_URL` you can call `gcloud app browse`_).

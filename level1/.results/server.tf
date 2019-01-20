@@ -1,11 +1,11 @@
 provider "google" {
-    credentials = "${file("account.json")}"
-    project     = "workshop-test"
-    region      = "us-central1"
+  credentials = "${file("account.json")}"
+  project     = "workshop-test"
+  region      = "us-central1"
 }
 
 resource "google_compute_address" "workshop-static-ip" {
-  name = "workshop-static-ip"
+  name         = "workshop-static-ip"
   network_tier = "STANDARD"
   address_type = "EXTERNAL"
 }
@@ -21,8 +21,8 @@ resource "google_compute_instance" "workshop-server" {
   boot_disk {
     initialize_params {
       image = "family/coreos-stable"
-      size = 30
-      type = "pd-standard"
+      size  = 30
+      type  = "pd-standard"
     }
   }
 
@@ -30,8 +30,8 @@ resource "google_compute_instance" "workshop-server" {
     network = "default"
 
     access_config {
-        network_tier = "STANDARD"
-        nat_ip = "${google_compute_address.workshop-static-ip.address}"
+      network_tier = "STANDARD"
+      nat_ip       = "${google_compute_address.workshop-static-ip.address}"
     }
   }
 
@@ -52,7 +52,6 @@ resource "google_compute_firewall" "api" {
   source_ranges = ["0.0.0.0/0"]
 }
 
-
 resource "google_compute_firewall" "traefik" {
   name    = "traefik"
   network = "default"
@@ -63,4 +62,8 @@ resource "google_compute_firewall" "traefik" {
   }
 
   source_ranges = ["<MY_PUBLIC_IP>/32"]
+}
+
+output "static-ip" {
+  value = "${google_compute_address.workshop-static-ip.address}"
 }
