@@ -21,6 +21,12 @@ If you already have some GCP project, better to create new one for this workshop
 
 ## [Level 0](https://cloud.google.com/appengine/docs/standard/go111/building-app/)
 
+There are two types of App Engine environments:
+- Standart
+- Flexible
+
+We will be using **App Engine Standart Environment**. More information about environment types [here](https://cloud.google.com/appengine/docs/the-appengine-environments). 
+
 Go through official guide [Building a Go App on App Engine](https://cloud.google.com/appengine/docs/standard/go111/building-app/)!
 
 **Note**: Using `us-central` region.

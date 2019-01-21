@@ -2,7 +2,11 @@
 
 ## Install CFSSL
 
-Run `go get -u github.com/cloudflare/cfssl/cmd/cfssl` and `go get -u github.com/cloudflare/cfssl/cmd/cfssljson`
+Run 
+```
+go get -u github.com/cloudflare/cfssl/cmd/cfssl
+go get -u github.com/cloudflare/cfssl/cmd/cfssljson
+```
 
 ## Generate self signed SSL certs
 
@@ -15,24 +19,38 @@ with `bash create-certs.sh`
 
 ## Upload the certificates to storage bucket
 
-Think of unique storage bucket name and run `export GS_BUCKET=gs://<unique bucket name>`
+Think of unique storage bucket name and run 
+```
+export GS_BUCKET=gs://<unique bucket name>
+```
 
-Create this bucket with command: `gsutil mb $GS_BUCKET`
-Copy the certificates into the bucket: `gsutil cp cfssl/*.pem $GS_BUCKET`
+Create this bucket with command: 
+```
+gsutil mb $GS_BUCKET
+```
+
+Copy the certificates into the bucket: 
+```
+gsutil cp cfssl/*.pem $GS_BUCKET
+```
 
 ## Give Read Only access to the bucket for our server
 
-Modify the resource `google_compute_instance` in the `server.tf` file, adding next lines into the code block:
+Modify the resource `google_compute_instance` in the `server.tf` file, adding a `service_account` block:
 
 ```tf
+resource "google_compute_instance" "workshop-server" {
+  ...
+
   service_account {
     scopes = ["storage-ro"]
   }
+}
 ```
 
 ## Download the certificates
 
-Add new systemd unit to the `cloud-config.yaml` file which will download the certificates from the bucket:
+Add new systemd unit to the `cloud-config.yaml` file which will download the certificates from the bucket. Change `<BUCKET_NAME>` to the bucket name you have just created:
 
 ```yml
 - name: cfssl-download.service
@@ -48,7 +66,7 @@ Add new systemd unit to the `cloud-config.yaml` file which will download the cer
     ExecStart=/bin/bash -c \
                 '/usr/bin/docker run --rm --name cfssl-lodwnload \
                           -v /etc/cfssl:/etc/cfssl \
-                            google/cloud-sdk:alpine gsutil cp gs://<bucket_name>/{ca,server}* /etc/cfssl'
+                            google/cloud-sdk:alpine gsutil cp gs://<BUCKET_NAME>/{ca,server}* /etc/cfssl'
     RemainAfterExit=true
     StandardOutput=journal
 ```
@@ -71,6 +89,15 @@ ExecStart=/usr/bin/docker run --rm --name traefik \
 ```
 
 To open 443 port in firewall, change line `ports    = ["80"]` in the `server.tf` to `ports    = ["80", "443"]`
+```
+resource "google_compute_firewall" "api" {
+  ...
+  allow {
+    protocol = "tcp"
+    ports    = ["80", "443"]
+  }
+}
+```
 
 ## Update entrypoint for the `whoami` container
 
@@ -103,31 +130,48 @@ cfssl/*
 
 This configuration will make sure, that only `client.pem` and `client-key.pem` included into code package.
 
-Then, modify the app code, to perform **TLS Mutual Auth** request to out TLS protected webserver. To do so update next code parts:
+Then, modify the app code in `main.go` file, to perform **TLS Mutual Auth** request to out TLS protected webserver. To do so update next code parts:
 
-1. Add new import "crypto/tls"
+1. Add new import `"crypto/tls"`:
+```go
+package main
+
+import (
+...
+	"io/ioutil"
+...
+)
+```
 
 1. Create custom http client:
 
-    ```go
-    var client = &http.Client{}
+```go
+var client = &http.Client{}
 
-    func init() {
-        cert, err := tls.LoadX509KeyPair("cfssl/client.pem", "cfssl/client-key.pem")
-        if err != nil {
-            log.Fatal(err)
-        }
-
-        client.Transport = &http.Transport{
-            TLSClientConfig: &tls.Config{
-                InsecureSkipVerify: true,
-                Certificates:       []tls.Certificate{cert},
-            },
-        }
+func init() {
+    cert, err := tls.LoadX509KeyPair("cfssl/client.pem", "cfssl/client-key.pem")
+    if err != nil {
+        log.Fatal(err)
     }
-    ```
 
-1. Replace default http client, with custom one, to do so, replace line: `rs, err := http.Get(hostEndpoint)` with `rs, err := client.Get(hostEndpoint)`
+    client.Transport = &http.Transport{
+        TLSClientConfig: &tls.Config{
+            InsecureSkipVerify: true,
+            Certificates:       []tls.Certificate{cert},
+        },
+    }
+}
+```
+
+1. Replace **default** http client, with **custom** one inside a `demoHandler` function. To do so, replace line: 
+```
+rs, err := http.Get(hostEndpoint)
+```
+
+with
+```
+rs, err := client.Get(hostEndpoint)
+```
 
 Deploy the new app version with `gcloud app deploy`.
 
@@ -138,3 +182,17 @@ TODO:
 Try opening the `/whoami` url in your browser
 
 Try opening the `/demo` url in your browser
+
+## Clean up 
+
+If you have created a new GCP project for this workshop, you can delete a whole project with all the created resources.
+```
+gcloud projects delete $PROJECT_ID
+```
+
+In case you used an old GCP project and you want to delete workshop resources, use the following commands:
+```
+terraform destroy
+gsutil rm -r gs://$GS_BUCKET
+gcloud iam service-accounts delete terraform@${PROJECT_ID}.iam.gserviceaccount.com
+```
