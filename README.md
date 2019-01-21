@@ -25,7 +25,7 @@ There are two types of App Engine environments:
 - Standart
 - Flexible
 
-We will be using **App Engine Standart Environment**. More information about environment types [here](https://cloud.google.com/appengine/docs/the-appengine-environments). 
+We will be using **App Engine Standard Environment**. More information about environment types [here](https://cloud.google.com/appengine/docs/the-appengine-environments). 
 
 Go through official guide [Building a Go App on App Engine](https://cloud.google.com/appengine/docs/standard/go111/building-app/)!
 
