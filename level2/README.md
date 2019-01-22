@@ -1,6 +1,6 @@
 # Level 2 - Add TLS protection
 
-## Install CFSSL
+## 2.0 Install CFSSL
 
 Run 
 ```
@@ -8,7 +8,7 @@ go get -u github.com/cloudflare/cfssl/cmd/cfssl
 go get -u github.com/cloudflare/cfssl/cmd/cfssljson
 ```
 
-## Generate self signed SSL certs
+## 2.1 Generate self signed SSL certs
 
 Set the env variable with the ip of your server (same as in `app.yml`):
 ```
@@ -22,7 +22,7 @@ with
 bash create-certs.sh
 ```
 
-## Upload the certificates to storage bucket
+## 2.2 Upload the certificates to storage bucket
 
 Think of a unique storage bucket name (or just use your PROJECT_ID) and run 
 ```
@@ -39,7 +39,7 @@ Copy the certificates into the bucket:
 gsutil cp cfssl/*.pem $GS_BUCKET
 ```
 
-## Give Read Only access to the bucket for our server
+## 2.3 Give Read Only access to the bucket for our server
 
 Modify the resource `google_compute_instance` in `server.tf`, adding a `service_account` block:
 
@@ -53,7 +53,7 @@ resource "google_compute_instance" "workshop-server" {
 }
 ```
 
-## Download the certificates
+## 2.4 Download the certificates
 
 Add a new systemd unit to `cloud-config.yaml` which will download the certificates from the bucket. Change `<BUCKET_NAME>` to the one you have just created:
 
@@ -76,7 +76,7 @@ Add a new systemd unit to `cloud-config.yaml` which will download the certificat
     StandardOutput=journal
 ```
 
-## Make traefik read the certificates
+## 2.5 Make traefik read the certificates
 
 Now you need to update traefik configuration to read the certificates:
 
@@ -104,7 +104,7 @@ resource "google_compute_firewall" "api" {
 }
 ```
 
-## Update entrypoint for the `whoami` container
+## 2.6 Update entrypoint for the `whoami` container
 
 Add more more labels for the `whoami` container start command in `cloud-config.yaml`:
 
@@ -113,7 +113,7 @@ Add more more labels for the `whoami` container start command in `cloud-config.y
 --label traefik.frontend.redirect.entryPoint=https \
 ```
 
-## Apply the changes
+## 2.7 Apply the changes
 
 In order to apply the changes to our server, we will need to recreate it. To do so, we need to mark it to be destroyed on the next run:
 
@@ -123,7 +123,7 @@ terraform taint  google_compute_instance.workshop-server
 
 Now we can apply the the changes with `terraform apply`
 
-## Modify the app code to make requests with client certificate
+## 2.8 Modify the app code to make requests with client certificate
 
 First, we need to update our `.gcloudignore` file to ignore the unnecessary certificates. To do so, add the following:
 
@@ -179,7 +179,7 @@ rs, err := client.Get(hostEndpoint)
 
 Deploy the new app version with `gcloud app deploy`.
 
-## Verifying
+## 2.9 Verifying
 
 Now, you can try to open 
 
@@ -187,7 +187,7 @@ Now, you can try to open
 
 `<APP_URL>/demo` - you should see the same output as in previous level (btw, this may take some time to work, be patient)
 
-## Clean up 
+## 2.10 Clean up 
 
 If you have created a new GCP project for this workshop, you can delete the whole project with all the created resources.
 ```
