@@ -138,7 +138,7 @@ package main
 
 import (
 ...
-	"io/ioutil"
+	"crypto/tls"
 ...
 )
 ```
@@ -177,11 +177,11 @@ Deploy the new app version with `gcloud app deploy`.
 
 ## Verifying
 
-TODO:
+Now, you can try to open 
 
-Try opening the `/whoami` url in your browser
+`<STATIC PUBLIC IP>:80/whoami` - you will see certificate error
 
-Try opening the `/demo` url in your browser
+`<APP_URL>/demo` - you shold see the same output as in previous level (btw, this may take some time to work, be patient)
 
 ## Clean up 
 
