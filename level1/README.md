@@ -92,7 +92,7 @@ Then, add `whoami` unit configurations (append it to `cloud-config.yaml`):
 ```
 
 _where `--label traefik.frontend.rule=Path:/whoami` is traefik configuration, which tells that traffic
-coming to HTTP path `/whoami` will be forwarded to the `whoami` container.
+coming to HTTP path `/whoami` will be forwarded to the `whoami` container._
 
 and `traefik` unit as well  (append it to `cloud-config.yaml`):
 
