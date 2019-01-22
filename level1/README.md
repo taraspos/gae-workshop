@@ -49,7 +49,7 @@ We will use a [CoreOS](https://coreos.com/why/) based server, and we are going t
 > Because it is the simplest way to provision a cloud native Linux server, especially CoreOS.
 > This is still real world, of course we are not going to SSH into the server and do the configurations manually 🤢
 
-_Note: Cloud-Config is deprecated in favor of [Ignition](https://coreos.com/ignition/docs/latest/), however in this workshop we will stick to Cloud-Config, since it is easier to understand.
+_Note: Cloud-Config is deprecated in favor of [Ignition](https://coreos.com/ignition/docs/latest/), however in this workshop we will stick to Cloud-Config, since it is easier to understand._
 
 For demonstration purposes we will use [Traefik](https://traefik.io/) and [whoami demo app](https://github.com/containous/whoami).
 
