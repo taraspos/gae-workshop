@@ -24,7 +24,7 @@ bash create-certs.sh
 
 ## Upload the certificates to storage bucket
 
-Think of unique storage bucket name and run 
+Think of unique (or just use your PROCJET_ID) storage bucket name and run 
 ```
 export GS_BUCKET=gs://<unique bucket name>
 ```
