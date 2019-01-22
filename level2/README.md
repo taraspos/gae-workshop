@@ -15,7 +15,7 @@ Set the env variable with the ip of your server (same as in `app.yml`):
 export SERVER_IP=<Server static IP>
 ```
 
-Copy the content of [create-certs.sh](./create-certs.sh) to your
+Copy the contents of [create-certs.sh](./create-certs.sh) to your
 Cloud Shell or local environment as `create-certs.sh` and run it
 with
 ```
@@ -24,12 +24,12 @@ bash create-certs.sh
 
 ## Upload the certificates to storage bucket
 
-Think of unique (or just use your PROJECT_ID) storage bucket name and run 
+Think of a unique storage bucket name (or just use your PROJECT_ID) and run 
 ```
 export GS_BUCKET=gs://<unique bucket name>
 ```
 
-Create this bucket with command: 
+Create this bucket with: 
 ```
 gsutil mb $GS_BUCKET
 ```
@@ -41,7 +41,7 @@ gsutil cp cfssl/*.pem $GS_BUCKET
 
 ## Give Read Only access to the bucket for our server
 
-Modify the resource `google_compute_instance` in the `server.tf` file, adding a `service_account` block:
+Modify the resource `google_compute_instance` in `server.tf`, adding a `service_account` block:
 
 ```tf
 resource "google_compute_instance" "workshop-server" {
@@ -55,7 +55,7 @@ resource "google_compute_instance" "workshop-server" {
 
 ## Download the certificates
 
-Add new systemd unit to the `cloud-config.yaml` file which will download the certificates from the bucket. Change `<BUCKET_NAME>` to the bucket name you have just created:
+Add a new systemd unit to `cloud-config.yaml` which will download the certificates from the bucket. Change `<BUCKET_NAME>` to the one you have just created:
 
 ```yml
 - name: cfssl-download.service
@@ -78,7 +78,7 @@ Add new systemd unit to the `cloud-config.yaml` file which will download the cer
 
 ## Make traefik read the certificates
 
-Now you need to update traefik configurations to read  the certificates:
+Now you need to update traefik configuration to read the certificates:
 
 ```sh
 ExecStart=/usr/bin/docker run --rm --name traefik \
@@ -93,7 +93,7 @@ ExecStart=/usr/bin/docker run --rm --name traefik \
                                     --entryPoints='Name:https Address::443 TLS:/etc/cfssl/server.pem,/etc/cfssl/server-key.pem CA:/etc/cfssl/ca.pem'
 ```
 
-To open 443 port in firewall, change line `ports    = ["80"]` in the `server.tf` to `ports    = ["80", "443"]`
+To open 443 port in firewall, change line `ports    = ["80"]` in `server.tf` to `ports    = ["80", "443"]`
 ```
 resource "google_compute_firewall" "api" {
   ...
@@ -106,7 +106,7 @@ resource "google_compute_firewall" "api" {
 
 ## Update entrypoint for the `whoami` container
 
-Add more more labels for the `whoami` container start command in the `cloud-config.yaml`
+Add more more labels for the `whoami` container start command in `cloud-config.yaml`:
 
 ```sh
 --label traefik.frontend.entryPoints=http,https \
@@ -115,8 +115,7 @@ Add more more labels for the `whoami` container start command in the `cloud-conf
 
 ## Apply the changes
 
-In order to apply the changes to our server, we will need to recreate it,
-to do so, we need to mark it to be destroyed on the next run:
+In order to apply the changes to our server, we will need to recreate it. To do so, we need to mark it to be destroyed on the next run:
 
 ```tf
 terraform taint  google_compute_instance.workshop-server
@@ -124,18 +123,18 @@ terraform taint  google_compute_instance.workshop-server
 
 Now we can apply the the changes with `terraform apply`
 
-## Modify the app code, to do the req with client cert
+## Modify the app code to make requests with client certificate
 
-First, we need to update our `.gcloudignore` file, to ignore the not needed certificats, to do so, add next two lines:
+First, we need to update our `.gcloudignore` file to ignore the unnecessary certificates. To do so, add the following:
 
 ```sh
 cfssl/*
 !cfssl/*client*.pem
 ```
 
-This configuration will make sure, that only `client.pem` and `client-key.pem` included into code package.
+This configuration will make sure that only `client.pem` and `client-key.pem` are included in the code package.
 
-Then, modify the app code in `main.go` file, to perform **TLS Mutual Auth** request to out TLS protected webserver. To do so update next code parts:
+Now, modify the app code in `main.go` file to perform **TLS Mutual Auth** request to out TLS protected webserver:
 
 1. Add new import `"crypto/tls"`:
 ```go
@@ -148,7 +147,7 @@ import (
 )
 ```
 
-1. Create custom http client:
+1. Create a custom http client:
 
 ```go
 var client = &http.Client{}
@@ -168,7 +167,7 @@ func init() {
 }
 ```
 
-1. Replace **default** http client, with **custom** one inside a `demoHandler` function. To do so, replace line: 
+1. Replace **default** http client, with **custom** one inside a `demoHandler` function. To do so, replace: 
 ```
 rs, err := http.Get(hostEndpoint)
 ```
@@ -184,13 +183,13 @@ Deploy the new app version with `gcloud app deploy`.
 
 Now, you can try to open 
 
-`<STATIC PUBLIC IP>:80/whoami` - you will see certificate error
+`<STATIC PUBLIC IP>:80/whoami` - you will see a certificate error
 
-`<APP_URL>/demo` - you shold see the same output as in previous level (btw, this may take some time to work, be patient)
+`<APP_URL>/demo` - you should see the same output as in previous level (btw, this may take some time to work, be patient)
 
 ## Clean up 
 
-If you have created a new GCP project for this workshop, you can delete a whole project with all the created resources.
+If you have created a new GCP project for this workshop, you can delete the whole project with all the created resources.
 ```
 gcloud projects delete $PROJECT_ID
 ```
