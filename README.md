@@ -36,6 +36,8 @@ Also, you need to enable Google Cloud APIs to be able to run deploy via
 - Google Cloud Build API `gcloud services enable cloudbuild.googleapis.com`
 - Google Compute Engine API `gcloud services enable compute.googleapis.com`
 
+**Note**: After finishing official tutorial, proceedeing to the [Level 1](./level1/README.md), and **not** to the Next Steps page.
+
 ## [Level 1](./level1/README.md)
 
 Deploy and provision simple webserver with terraform, then access it from GAE app.
